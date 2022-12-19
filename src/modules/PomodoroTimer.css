@@ -1,0 +1,67 @@
+.timer {
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  /* background-color: aliceblue; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 40vw;;
+  padding: 0;
+  margin: 0; 
+  border: 1px solid black;
+}
+
+.timer:hover .controls {
+  display: flex;
+  flex-direction: row;
+  transition: all 0.2s ease-in-out;
+}
+
+.timer .controls {
+  display: none;
+}
+
+.display {
+font-family: 'Yanone Kaffeesatz', sans-serif;
+  font-size: 35vw;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.controls {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+ button {
+  width: 33%;
+  height: 21.5vw;
+  margin: 0.5vw;
+  font-size: 7vw;
+  text-align: center;
+} 
+
+.pomodoros {
+  display: flex;
+  flex-direction: row;
+  font-size: 10vw;
+}
+
+
+/* button.start {
+  background-color: white;
+}
+
+button.stop {
+  background-color: white;
+}
+
+button.pause {
+  background-color: white;
+} */
+
