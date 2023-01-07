@@ -7,12 +7,17 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "tauri-react-app",
+    "productName": "An apple a day",
     "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
       "all": false,
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": ["https://api.track.toggl.com/*"]
+      },
       "window": {
         "all": true, 
         "create": true, 
@@ -90,7 +95,7 @@
         "fullscreen": false,
         "height": 200,
         "resizable": true,
-        "title": "tauri react",
+        "title": "An apple a day",
         "width": 200
       }
     ]

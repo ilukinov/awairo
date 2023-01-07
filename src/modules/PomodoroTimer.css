@@ -13,7 +13,6 @@
 
 .timer:hover .controls {
   display: flex;
-  flex-direction: row;
   transition: all 0.2s ease-in-out;
 }
 
@@ -26,11 +25,12 @@ font-family: 'Yanone Kaffeesatz', sans-serif;
   font-size: 35vw;
   font-weight: bold;
   z-index: 1;
+  color: rgba(255, 255, 255, 0.87);
 }
 
 .controls {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100%;
   position: absolute;
   top: 0;
@@ -38,7 +38,40 @@ font-family: 'Yanone Kaffeesatz', sans-serif;
   z-index: 2;
 }
 
- button {
+.buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  width: 100%;
+  /* z-index: 2; */
+}
+
+.tasks-row {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  /* background-color: aliceblue; */
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  color:#1a1a1a
+  /* z-index: 2; */
+}
+
+
+button {
+  flex: 1;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  /* padding: 0.6em 1.2em; */
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer; 
+  flex: 1;
+  transition: border-color 0.25s;
   width: 33%;
   height: 21.5vw;
   margin: 0.5vw;
@@ -46,22 +79,9 @@ font-family: 'Yanone Kaffeesatz', sans-serif;
   text-align: center;
 } 
 
+
 .pomodoros {
   display: flex;
   flex-direction: row;
   font-size: 10vw;
 }
-
-
-/* button.start {
-  background-color: white;
-}
-
-button.stop {
-  background-color: white;
-}
-
-button.pause {
-  background-color: white;
-} */
-
