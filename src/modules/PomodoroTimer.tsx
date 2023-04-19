@@ -1,3 +1,4 @@
+//PomodoroTimer.tsx
 import React, { useState, useEffect } from "react";
 import "./PomodoroTimer.css";
 import Pomodoro from './types/Pomodoro';
@@ -7,8 +8,8 @@ import Dropdown from "./Dropdown";
 
 const POMODORO_DURATION = 25; // Pomodoro duration in minutes
 const BREAK_DURATION = 5; // Break duration in minutes
-const options = ['Working Work', 'Working Fun', 'Option 3'];
-const togglClient = new TogglClient('', 1, 1);
+const options = ['Working Work', 'Meeting', 'Option 3'];
+const togglClient = new TogglClient('', 188414601, 6956576);
 
 function PomodoroTimer() {
   const [inputValue, setInputValue] = useState('');
@@ -104,17 +105,17 @@ function PomodoroTimer() {
           <button className="stop" onClick={resetTimer}>Reset</button>
       </div>
       <div className="tasks-row">
-        <Dropdown options={dropdownOptions} onChange={onOptionSelected} />
-        <input value={inputValue} onChange={handleInputChange} /><button onClick={handleSaveClick}>Save</button>
+        <Dropdown className="dropdown" options={dropdownOptions} onChange={onOptionSelected} />
+        {/* <input value={inputValue} onChange={handleInputChange} /><button onClick={handleSaveClick}>Save</button> */}
       </div>
     </div>
-    <div className="stats">
+ 
     <div className="pomodoros">
     {pomodorosCompleted.map(() => (
         <div className="apple" key={Math.random().toString(36).substring(2)}>🍏</div>
       ))}
     </div>
-    </div>
+
 
   </div>
   );
