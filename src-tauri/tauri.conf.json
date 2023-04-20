@@ -13,6 +13,9 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "globalShortcut": {
+        "all": true
+      },
       "http": {
         "all": true,
         "request": true,
@@ -54,7 +57,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "Illya Lukinov",
       "deb": {
         "depends": []
       },
@@ -66,7 +69,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.ilukinov.apps",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

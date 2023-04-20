@@ -1,11 +1,12 @@
+/* PomodoroTimer.css */
 .timer {
   font-family: 'Yanone Kaffeesatz', sans-serif;
   /* background-color: aliceblue; */
-  display: flex;
+  /* display: flex; */
   flex-direction: column;
-  align-items: center;
-  width: 100%;
-  height: 40vw;;
+  /* align-items: center; */
+  /* width: 100%; */
+  /* height: 40vw;; */
   padding: 0;
   margin: 0; 
   border: 1px solid black;
@@ -21,11 +22,14 @@
 }
 
 .display {
-font-family: 'Yanone Kaffeesatz', sans-serif;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
   font-size: 35vw;
   font-weight: bold;
+  text-align: center;
   z-index: 1;
   color: rgba(255, 255, 255, 0.87);
+  width: 100%;
+
 }
 
 .controls {
@@ -43,11 +47,10 @@ font-family: 'Yanone Kaffeesatz', sans-serif;
   flex-wrap: wrap;
   flex-direction: row;
   width: 100%;
-  /* z-index: 2; */
 }
 
 .tasks-row {
-  flex: 1;
+  /* flex: 1; */
   display: flex;
   flex-wrap: wrap;
   width: 100%;
@@ -55,16 +58,14 @@ font-family: 'Yanone Kaffeesatz', sans-serif;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  color:#1a1a1a
-  /* z-index: 2; */
+  color:#1a1a1a;
+  height: 21.5vw;
 }
-
 
 button {
   flex: 1;
   border-radius: 8px;
   border: 1px solid transparent;
-  /* padding: 0.6em 1.2em; */
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -79,9 +80,35 @@ button {
   text-align: center;
 } 
 
-
 .pomodoros {
+  /* background-color: aliceblue; */
   display: flex;
+  width: 100%;
+  flex-wrap: wrap;
   flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.apple {
+  width: 10%; /* adjust as needed */
+  text-align: center;
   font-size: 10vw;
+}
+
+.dropdown {
+  width: 100%;
+  background-color: white;
+  color: black;
+  font-size: 7vw;
+}
+
+.dropdown-option {
+  background-color: white;
+  color: black;
+}
+
+.dropdown-option:hover {
+  background-color: lightgray;
+  color: black;
 }

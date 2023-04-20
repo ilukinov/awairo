@@ -3,15 +3,16 @@ import React from 'react';
 interface DropdownProps {
   options: string[];
   onChange: (selectedOption: string) => void;
+  className?: string;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ options, onChange }) => {
+const Dropdown: React.FC<DropdownProps> = ({ options, onChange, className }) => {
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     onChange(event.target.value);
   };
 
   return (
-    <select onChange={handleChange}>
+    <select className={className} onChange={handleChange}>
       {options.map(option => (
         <option key={option} value={option}>{option}</option>
       ))}
