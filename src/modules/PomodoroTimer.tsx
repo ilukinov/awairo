@@ -31,6 +31,10 @@ function PomodoroTimer() {
   const [completedPomodoros, setCompletedPomodoros] = useState<CompletedPomodoro[]>([]);
   const [selectedPomodoroId, setSelectedPomodoroId] = useState<string | null>(null);
   const [pomodoroIcon, setPomodoroIcon] = useState('🍎');
+  const [dailyGoal] = useState(() => {
+    const saved = localStorage.getItem('dailyGoal');
+    return saved ? parseInt(saved) : 8; // Default to 8 pomodoros
+  });
 
   useEffect(() => {
     if (isRunning && secondsLeft > 0) {
@@ -39,9 +43,11 @@ function PomodoroTimer() {
       }, 1000);
       return () => clearTimeout(timeoutId);
     }
-    if (isRunning && secondsLeft === 0) {
+    if (secondsLeft === 0) {
       setIsRunning(false);
-      handleTimerComplete();
+      if (isRunning) {
+        handleTimerComplete();
+      }
     }
   }, [isRunning, secondsLeft]);
 
@@ -92,6 +98,9 @@ function PomodoroTimer() {
   }, [isRunning]);
 
   function startTimer() {
+    if (secondsLeft === 0) {
+      setSecondsLeft(timerLength);
+    }
     setIsRunning(true);
   }
 
@@ -134,6 +143,16 @@ function PomodoroTimer() {
     setSelectedPomodoroId(null);
   };
 
+  const handlePomodoroDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this pomodoro?')) {
+      setCompletedPomodoros(prev => {
+        const updatedPomodoros = prev.filter(p => p.id !== id);
+        localStorage.setItem('completedPomodoros', JSON.stringify(updatedPomodoros));
+        return updatedPomodoros;
+      });
+    }
+  };
+
   const openSettings = async () => {
     const settingsWindow = new WebviewWindow('settings', {
       url: 'src/settings.html',
@@ -156,6 +175,28 @@ function PomodoroTimer() {
     });
   };
 
+  const openHistory = async () => {
+    const historyWindow = new WebviewWindow('history', {
+      url: 'src/history.html',
+      title: 'History',
+      width: 1200,
+      height: 800,
+      decorations: true,
+      resizable: true,
+      center: true,
+      alwaysOnTop: true,
+      focus: true,
+    });
+
+    historyWindow.once('tauri://created', async () => {
+      await historyWindow.setAlwaysOnTop(true);
+    });
+
+    historyWindow.once('tauri://error', (e) => {
+      console.error('History window creation failed:', e);
+    });
+  };
+
   const handleTimerComplete = () => {
     const newPomodoro: CompletedPomodoro = {
       id: crypto.randomUUID(),
@@ -171,6 +212,18 @@ function PomodoroTimer() {
     });
   };
 
+  const getTodayPomodoros = () => {
+    const today = new Date().setHours(0, 0, 0, 0);
+    return completedPomodoros.filter(p => {
+      const pomodoroDate = new Date(p.timestamp).setHours(0, 0, 0, 0);
+      return pomodoroDate === today;
+    });
+  };
+
+  const isDailyGoalAchieved = () => {
+    return getTodayPomodoros().length >= dailyGoal;
+  };
+
   return (
     <div className="pomodoro-container">
       <div className="timer">
@@ -183,24 +236,55 @@ function PomodoroTimer() {
             <button onClick={pauseTimer}>Pause</button>
             <button onClick={resetTimer}>Reset</button>
           </div>
-          <button 
-            className="settings-button" 
-            onClick={openSettings}
-            title="Settings"
-          >
-            ⚙️
-          </button>
+          <div className="bottom-buttons">
+            <button 
+              className="history-button" 
+              onClick={openHistory}
+              title="History"
+            >
+              📅
+            </button>
+            <button 
+              className="settings-button" 
+              onClick={openSettings}
+              title="Settings"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="completed-pomodoros">
-        {completedPomodoros.map(pomodoro => (
+        {getTodayPomodoros().map(pomodoro => (
           <div 
             key={pomodoro.id} 
-            className={`pomodoro-item ${pomodoro.committed ? 'committed' : ''}`}
-            onClick={() => !pomodoro.committed && handlePomodoroClick(pomodoro.id)}
+            className={`pomodoro-item ${pomodoro.committed ? 'committed' : ''} ${isDailyGoalAchieved() ? 'goal-achieved' : ''}`}
           >
-            {pomodoroIcon}
+            <div 
+              className="pomodoro-icon"
+              onClick={() => !pomodoro.committed && handlePomodoroClick(pomodoro.id)}
+            >
+              {pomodoroIcon}
+            </div>
+            <button 
+              className="delete-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePomodoroDelete(pomodoro.id);
+              }}
+              title="Delete"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        
+        {Array.from({ length: Math.max(0, dailyGoal - getTodayPomodoros().length) }).map((_, i) => (
+          <div key={`empty-${i}`} className="pomodoro-item empty">
+            <div className="pomodoro-icon">
+              {pomodoroIcon}
+            </div>
           </div>
         ))}
       </div>

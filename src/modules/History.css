@@ -1,0 +1,154 @@
+.history-container {
+  padding: 20px;
+  background-color: #1a1a1a;
+  color: rgba(255, 255, 255, 0.87);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+    Helvetica, Arial, sans-serif;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.history-header button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.87);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 16px;
+}
+
+.history-header button:hover {
+  color: #4CAF50; /* Green accent color */
+}
+
+.week-view {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.day-column {
+  background: #2a2a2a;
+  min-height: 600px;
+  padding: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-header {
+  padding: 8px;
+  text-align: center;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+}
+
+.day-pomodoros {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 60px;
+}
+
+.history-pomodoro {
+  position: relative;
+  background: #1a1a1a;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-pomodoro.committed {
+  background: #1e2f1e; /* Darker green background */
+  border-left: 2px solid #4CAF50; /* Green accent */
+}
+
+.history-pomodoro:hover {
+  background: #333;
+  border-color: #4CAF50; /* Green accent on hover */
+}
+
+.pomodoro-content {
+  flex: 1;
+}
+
+.pomodoro-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pomodoro-duration {
+  font-size: 14px;
+  margin-top: 4px;
+  color: #81C784; /* Light green for duration */
+}
+
+/* Add a subtle green glow for committed items */
+.history-pomodoro.committed:hover {
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+}
+
+.day-summary {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1e2f1e;
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-total {
+  font-size: 14px;
+  color: #81C784;
+}
+
+.summary-committed {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.delete-button {
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  background: #ff4444;
+  color: white;
+  border: none;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.delete-button:hover {
+  opacity: 1;
+}
+
+.history-pomodoro:hover .delete-button {
+  display: flex;
+} 

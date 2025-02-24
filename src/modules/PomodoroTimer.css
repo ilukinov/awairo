@@ -151,31 +151,80 @@ button:hover {
 }
 
 .completed-pomodoros {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8vw, 1fr));
   gap: 1vw;
   padding: 1vw;
-  justify-content: center;
-  align-items: flex-start;
-  /* Use flex-grow to take remaining space */
+  justify-items: center;
+  align-items: center;
   flex: 1 1 auto;
-  /* Remove max-height and use min-height instead */
   min-height: 50px;
-  overflow-y: auto;
+  overflow: hidden;
   box-sizing: border-box;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .pomodoro-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Base emoji style */
+.pomodoro-icon {
   cursor: pointer;
-  font-size: 8vw; /* Reduced from 10vw */
+  font-size: 8vw;
   opacity: 0.7;
   transition: all 0.2s ease;
   padding: 0.5vw;
+  position: relative;
 }
 
-.pomodoro-item:hover {
+.pomodoro-item.goal-achieved .pomodoro-icon {
   opacity: 1;
-  transform: scale(1.1);
+}
+
+.pomodoro-item.empty .pomodoro-icon {
+  cursor: default;
+  opacity: 0.15;
+}
+
+.pomodoro-item.empty.goal-achieved .pomodoro-icon {
+  opacity: 0.15;
+}
+
+.pomodoro-item.committed .pomodoro-icon {
+  opacity: 1;
+}
+
+.delete-button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 16px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  background: #ff4444 !important;
+  color: white !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.delete-button:hover {
+  opacity: 1;
+}
+
+.pomodoro-item:hover .delete-button {
+  display: flex;
 }
 
 .pomodoro-item.committed {
@@ -279,12 +328,19 @@ button:hover {
   }
 }
 
-/* Update the settings button styles */
-.settings-button {
+.bottom-buttons {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: none !important; /* Override default button styles */
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.settings-button,
+.history-button {
+  background: none !important;
   border: none !important;
   cursor: pointer;
   padding: 0;
@@ -296,16 +352,22 @@ button:hover {
   transition: opacity 0.2s;
 }
 
-.settings-button:hover {
+.settings-button:hover,
+.history-button:hover {
   opacity: 1;
   background: none !important;
 }
 
-/* Remove the old hover rules since they're no longer needed */
-.pomodoro-container:hover .settings-button {
-  opacity: 0.7;
+.pomodoro-item.empty {
+  cursor: default;
 }
 
-.pomodoro-container:hover .settings-button:hover {
-  opacity: 1;
+.pomodoro-item.empty .pomodoro-icon {
+  cursor: default;
+  opacity: 0.15;
+}
+
+.pomodoro-item.empty:hover .pomodoro-icon {
+  opacity: 0.15;
+  transform: none;
 }

@@ -29,6 +29,10 @@ export function Settings() {
     }
     return { hours: 0, minutes: 25, seconds: 0 }; // Default time
   });
+  const [dailyGoal, setDailyGoal] = useState(() => {
+    const saved = localStorage.getItem('dailyGoal');
+    return saved ? parseInt(saved) : 8;
+  });
 
   useEffect(() => {
     // Load settings from localStorage
@@ -196,6 +200,24 @@ export function Settings() {
               <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="setting-group">
+        <label>Daily Goal</label>
+        <div className="number-input">
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value={dailyGoal}
+            onChange={(e) => {
+              const value = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
+              setDailyGoal(value);
+              localStorage.setItem('dailyGoal', value.toString());
+            }}
+          />
+          <span>pomodoros</span>
         </div>
       </div>
     </div>
