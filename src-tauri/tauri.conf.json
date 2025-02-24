@@ -88,7 +88,7 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self' 'unsafe-inline'; connect-src 'self'"
     },
     "updater": {
       "active": false
@@ -96,10 +96,13 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 200,
+        "height": 400,
         "resizable": true,
         "title": "An apple a day",
-        "width": 200
+        "width": 300,
+        "decorations": true,
+        "transparent": false,
+        "theme": "Dark"
       }
     ]
   }
