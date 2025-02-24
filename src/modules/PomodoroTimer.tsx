@@ -1,36 +1,36 @@
 //PomodoroTimer.tsx
 import React, { useState, useEffect } from "react";
 import "./PomodoroTimer.css";
-import Pomodoro from './types/Pomodoro';
-import TogglClient from './TogglClient'; 
-import Interruption from './types/Interruption';
-import Dropdown from "./Dropdown";
 import { PomodoroDialog } from "./PomodoroDialog";
 import { WebviewWindow } from '@tauri-apps/api/window';
 
 const POMODORO_DURATION = 0.1; // Pomodoro duration in minutes
 const BREAK_DURATION = 5; // Break duration in minutes
-const options = ['Working Work', 'Meeting', 'Option 3'];
-const togglClient = new TogglClient('7f08be9642887f97ab575fcfcf60a94b', 188414601, 6956576);
+const options = ['Working', 'Meeting', 'Other']; // Simplified options
 
 interface CompletedPomodoro {
   id: string;
   timestamp: number;
   duration: number;
   comment?: string;
-  taskId?: string;
   committed: boolean;
 }
 
 function PomodoroTimer() {
-  const [secondsLeft, setSecondsLeft] = useState(POMODORO_DURATION * 60);
+  const [timerLength, setTimerLength] = useState(() => {
+    const saved = localStorage.getItem('timerLength');
+    if (saved) {
+      const { hours, minutes, seconds } = JSON.parse(saved);
+      return (hours * 3600) + (minutes * 60) + seconds;
+    }
+    return 25 * 60; // Default 25 minutes
+  });
+
+  const [secondsLeft, setSecondsLeft] = useState(timerLength);
   const [isRunning, setIsRunning] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string>(options[0]);
-  const [interruptions, setInterruptions] = useState<Interruption[]>([]);
-  const [currentPomodoro, setCurrentPomodoro] = useState<Pomodoro | null>(null);
-  const [currentInterruption, setCurrentInterruption] = useState<Interruption | null>(null);
   const [completedPomodoros, setCompletedPomodoros] = useState<CompletedPomodoro[]>([]);
   const [selectedPomodoroId, setSelectedPomodoroId] = useState<string | null>(null);
+  const [pomodoroIcon, setPomodoroIcon] = useState('🍎');
 
   useEffect(() => {
     if (isRunning && secondsLeft > 0) {
@@ -45,21 +45,6 @@ function PomodoroTimer() {
     }
   }, [isRunning, secondsLeft]);
 
-  const handleTimerComplete = () => {
-    const newPomodoro: CompletedPomodoro = {
-      id: crypto.randomUUID(),
-      timestamp: Date.now(),
-      duration: POMODORO_DURATION * 60,
-      committed: false
-    };
-    
-    setCompletedPomodoros(prev => {
-      const updatedPomodoros = [...prev, newPomodoro];
-      localStorage.setItem('completedPomodoros', JSON.stringify(updatedPomodoros));
-      return updatedPomodoros;
-    });
-  };
-
   useEffect(() => {
     const saved = localStorage.getItem('completedPomodoros');
     if (saved) {
@@ -73,37 +58,52 @@ function PomodoroTimer() {
     }
   }, []);
 
-  function startTimer() {
-    if (secondsLeft === POMODORO_DURATION * 60) {
-      setCurrentPomodoro({ 
-        startDate: new Date(), 
-        endDate: new Date(), 
-        duration: POMODORO_DURATION * 60, 
-        completed: false, 
-        description: selectedOption, 
-        interruptions: []
-      });
-      setInterruptions([]);
+  useEffect(() => {
+    const savedIcon = localStorage.getItem('pomodoroIcon');
+    if (savedIcon) {
+      setPomodoroIcon(savedIcon);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'pomodoroIcon' && e.newValue) {
+        setPomodoroIcon(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'timerLength' && e.newValue) {
+        const { hours, minutes, seconds } = JSON.parse(e.newValue);
+        setTimerLength((hours * 3600) + (minutes * 60) + seconds);
+        if (!isRunning) {
+          setSecondsLeft((hours * 3600) + (minutes * 60) + seconds);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [isRunning]);
+
+  function startTimer() {
     setIsRunning(true);
   }
 
   function pauseTimer() {
     if(isRunning) {
-      setCurrentInterruption({startDate: new Date(), endDate: null });
       setIsRunning(false);
     }
   }
 
   function resetTimer() {
     setIsRunning(false);
-    setSecondsLeft(POMODORO_DURATION * 60);
-    setCurrentInterruption(null);
-    setCurrentPomodoro(null);
-  }
-
-  function onOptionSelected(option: string) {
-    setSelectedOption(option);
+    setSecondsLeft(timerLength);
   }
 
   const minutes = Math.floor(secondsLeft / 60);
@@ -143,14 +143,31 @@ function PomodoroTimer() {
       decorations: true,
       resizable: true,
       center: true,
+      alwaysOnTop: true,
+      focus: true,
+    });
+
+    settingsWindow.once('tauri://created', async () => {
+      await settingsWindow.setAlwaysOnTop(true);
     });
 
     settingsWindow.once('tauri://error', (e) => {
       console.error('Settings window creation failed:', e);
     });
+  };
 
-    settingsWindow.once('tauri://close-requested', () => {
-      // Handle any cleanup if needed
+  const handleTimerComplete = () => {
+    const newPomodoro: CompletedPomodoro = {
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      duration: timerLength,
+      committed: false
+    };
+    
+    setCompletedPomodoros(prev => {
+      const updatedPomodoros = [...prev, newPomodoro];
+      localStorage.setItem('completedPomodoros', JSON.stringify(updatedPomodoros));
+      return updatedPomodoros;
     });
   };
 
@@ -166,6 +183,13 @@ function PomodoroTimer() {
             <button onClick={pauseTimer}>Pause</button>
             <button onClick={resetTimer}>Reset</button>
           </div>
+          <button 
+            className="settings-button" 
+            onClick={openSettings}
+            title="Settings"
+          >
+            ⚙️
+          </button>
         </div>
       </div>
 
@@ -176,7 +200,7 @@ function PomodoroTimer() {
             className={`pomodoro-item ${pomodoro.committed ? 'committed' : ''}`}
             onClick={() => !pomodoro.committed && handlePomodoroClick(pomodoro.id)}
           >
-            🍎
+            {pomodoroIcon}
           </div>
         ))}
       </div>
@@ -189,14 +213,6 @@ function PomodoroTimer() {
           onClose={() => setSelectedPomodoroId(null)}
         />
       )}
-
-      <button 
-        className="settings-button" 
-        onClick={openSettings}
-        title="Settings"
-      >
-        ⚙️
-      </button>
     </div>
   );
 }

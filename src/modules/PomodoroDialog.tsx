@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import TogglClient from './TogglClient';
-import { CompletedPomodoro } from './types/CompletedPomodoro';
+import { useState } from 'react';
 
-interface Task {
+interface CompletedPomodoro {
   id: string;
-  name: string;
+  timestamp: number;
+  duration: number;
+  comment?: string;
+  committed: boolean;
 }
 
 interface PomodoroDialogProps {
@@ -16,31 +17,14 @@ interface PomodoroDialogProps {
 
 export function PomodoroDialog({ pomodoro, onSave, onCommit, onClose }: PomodoroDialogProps) {
   const [comment, setComment] = useState(pomodoro.comment || '');
-  const [taskId, setTaskId] = useState(pomodoro.taskId || '');
-  const [tasks, setTasks] = useState<Task[]>([]); // Added proper type for tasks
-  
-  const togglClient = new TogglClient('7f08be9642887f97ab575fcfcf60a94b', 188414601, 6956576);
-
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
 
   const handleSave = () => {
-    onSave(pomodoro.id, { comment, taskId });
+    onSave(pomodoro.id, { comment });
+    onClose();
   };
 
-  const handleCommit = async () => {
-    await togglClient.sendToToggl({
-      startDate: new Date(pomodoro.timestamp),
-      endDate: new Date(pomodoro.timestamp + pomodoro.duration * 1000),
-      duration: pomodoro.duration,
-      description: comment,
-      completed: true,
-      interruptions: []
-    });
+  const handleCommit = () => {
+    onSave(pomodoro.id, { comment });
     onCommit(pomodoro.id);
   };
 
@@ -49,20 +33,12 @@ export function PomodoroDialog({ pomodoro, onSave, onCommit, onClose }: Pomodoro
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="What did you work on?"
+        placeholder="Add a comment about this pomodoro session..."
       />
-      <select value={taskId} onChange={(e) => setTaskId(e.target.value)}>
-        <option value="">Select a task</option>
-        {tasks.map(task => (
-          <option key={task.id} value={task.id}>{task.name}</option>
-        ))}
-      </select>
       <div className="dialog-buttons">
         <button onClick={handleSave}>Save</button>
-        <button onClick={handleCommit} disabled={!comment || !taskId}>
-          Commit to Toggl
-        </button>
-        <button onClick={onClose}>Close</button>
+        <button onClick={handleCommit}>Commit</button>
+        <button onClick={onClose}>Cancel</button>
       </div>
     </div>
   );
