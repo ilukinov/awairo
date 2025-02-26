@@ -3,7 +3,7 @@
   windows_subsystem = "windows"
 )]
 use serialport::*;
-use tauri::Manager;
+use tauri::{Manager, WindowEvent};
 use window_state::{WindowState, WindowStateManager};
 
 mod window_state;
@@ -30,26 +30,33 @@ fn main() {
       
       // Load saved window state
       if let Some(saved_state) = window_state_manager.load() {
+        // Set window size from saved state
         window.set_size(tauri::Size::Physical(
           tauri::PhysicalSize {
             width: saved_state.width,
             height: saved_state.height,
           }
         )).unwrap();
+        
+        // Center the window after setting size
+        window.center().unwrap();
       }
       
-      // Save window state on close
+      // Save window state on close and when resized/moved
       let window_state_manager_clone = window_state_manager.clone();
       let window_clone = window.clone();
+      
       window.on_window_event(move |event| {
-        if let tauri::WindowEvent::CloseRequested { .. } = event {
-          if let Ok(size) = window_clone.inner_size() {
-            let state = WindowState {
-              width: size.width,
-              height: size.height,
-            };
-            window_state_manager_clone.save(&state);
-          }
+        match event {
+          // Save on close
+          WindowEvent::CloseRequested { .. } => {
+            save_window_state(&window_clone, &window_state_manager_clone);
+          },
+          // Save on resize or move (with throttling to avoid excessive writes)
+          WindowEvent::Moved { .. } | WindowEvent::Resized { .. } => {
+            save_window_state(&window_clone, &window_state_manager_clone);
+          },
+          _ => {}
         }
       });
       
@@ -57,4 +64,15 @@ fn main() {
     })
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
+}
+
+// Helper function to save window state
+fn save_window_state(window: &tauri::Window, state_manager: &WindowStateManager) {
+  if let Ok(size) = window.inner_size() {
+    let state = WindowState {
+      width: size.width, 
+      height: size.height,
+    };
+    state_manager.save(&state);
+  }
 }

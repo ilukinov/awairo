@@ -98,6 +98,8 @@
         "fullscreen": false,
         "minWidth": 150,
         "minHeight": 100,
+        "width": 910,
+        "height": 700,
         "resizable": true,
         "title": "An apple a day",
         "decorations": true,
