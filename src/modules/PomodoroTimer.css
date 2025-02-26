@@ -32,12 +32,14 @@ body {
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   position: relative;
   width: 100%;
-  /* Remove min-height and use flex to control size */
-  flex: 0 0 auto; /* Don't grow, don't shrink, auto base size */
+  flex: 0 0 auto; /* Changed from flex: 1 1 auto to prevent timer from taking all space */
+  display: flex;
+  flex-direction: column;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background-color: #1a1a1a;
 }
 
+/* Restore hover functionality for timer controls */
 .timer:hover .controls {
   display: flex;
 }
@@ -49,12 +51,12 @@ body {
 .display {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  font-size: 34vw; /* Reduced from 35vw to leave more space */
+  font-size: 35vw; /* Further reduced size to leave space for pomodoros */
   font-weight: bold;
   text-align: center;
   color: rgba(255, 255, 255, 0.87);
   width: 100%;
-  padding: 10px 0;
+  padding: 5px 0;
   user-select: none;
 }
 
@@ -67,7 +69,7 @@ body {
   display: none;
   flex-direction: column;
   background-color: rgba(26, 26, 26, 0.95);
-  z-index: 2;
+  z-index: 5; /* Higher z-index to appear above the pomodoros */
 }
 
 .buttons-row {
@@ -151,18 +153,19 @@ button:hover {
 }
 
 .completed-pomodoros {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8vw, 1fr));
-  gap: 1vw;
-  padding: 1vw;
-  justify-items: center;
-  align-items: center;
-  flex: 1 1 auto;
-  min-height: 50px;
-  overflow: hidden;
-  box-sizing: border-box;
-  max-width: 800px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 1vw 0;
+  flex: 1 0 auto; /* Allow it to grow but not shrink */
+}
+
+.pomodoro-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 4px; /* Reduced from 8px to save horizontal space */
+  margin: 4px 0; /* Add vertical margin between rows */
 }
 
 .pomodoro-item {
@@ -174,12 +177,16 @@ button:hover {
 
 /* Base emoji style */
 .pomodoro-icon {
-  cursor: pointer;
-  font-size: 8vw;
+  font-size: 6.5vw; /* Reduced from 7vw to make icons smaller */
   opacity: 0.7;
-  transition: all 0.2s ease;
-  padding: 0.5vw;
+  padding: 0.01vw; /* Reduced padding from 0.5vw */
   position: relative;
+}
+
+/* Make uncommitted pomodoros clickable */
+.pomodoro-item:not(.committed):not(.empty) .pomodoro-icon {
+  font-size: 5vw; 
+  cursor: pointer;
 }
 
 .pomodoro-item.goal-achieved .pomodoro-icon {
@@ -211,7 +218,7 @@ button:hover {
   border-radius: 50% !important;
   background: #ff4444 !important;
   color: white !important;
-  display: none;
+  display: none; /* Always hidden */
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -223,9 +230,10 @@ button:hover {
   opacity: 1;
 }
 
-.pomodoro-item:hover .delete-button {
+/* Remove this rule to prevent delete buttons from showing on hover */
+/* .pomodoro-item:hover .delete-button {
   display: flex;
-}
+} */
 
 .pomodoro-item.committed {
   opacity: 1;
@@ -336,6 +344,7 @@ button:hover {
   justify-content: space-between;
   padding: 0 20px;
   box-sizing: border-box;
+  z-index: 6; /* Make sure it's above other elements */
 }
 
 .settings-button,

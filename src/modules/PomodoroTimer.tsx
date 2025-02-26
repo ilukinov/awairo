@@ -31,7 +31,7 @@ function PomodoroTimer() {
   const [completedPomodoros, setCompletedPomodoros] = useState<CompletedPomodoro[]>([]);
   const [selectedPomodoroId, setSelectedPomodoroId] = useState<string | null>(null);
   const [pomodoroIcon, setPomodoroIcon] = useState('🍎');
-  const [dailyGoal] = useState(() => {
+  const [dailyGoal, setDailyGoal] = useState(() => {
     const saved = localStorage.getItem('dailyGoal');
     return saved ? parseInt(saved) : 8; // Default to 8 pomodoros
   });
@@ -96,6 +96,17 @@ function PomodoroTimer() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [isRunning]);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'dailyGoal' && e.newValue) {
+        setDailyGoal(parseInt(e.newValue));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   function startTimer() {
     if (secondsLeft === 0) {
@@ -216,7 +227,23 @@ function PomodoroTimer() {
     const today = new Date().setHours(0, 0, 0, 0);
     return completedPomodoros.filter(p => {
       const pomodoroDate = new Date(p.timestamp).setHours(0, 0, 0, 0);
+      return pomodoroDate === today && p.committed;
+    });
+  };
+
+  const getAllTodayPomodoros = () => {
+    const today = new Date().setHours(0, 0, 0, 0);
+    return completedPomodoros.filter(p => {
+      const pomodoroDate = new Date(p.timestamp).setHours(0, 0, 0, 0);
       return pomodoroDate === today;
+    });
+  };
+
+  const getUncommittedTodayPomodoros = () => {
+    const today = new Date().setHours(0, 0, 0, 0);
+    return completedPomodoros.filter(p => {
+      const pomodoroDate = new Date(p.timestamp).setHours(0, 0, 0, 0);
+      return pomodoroDate === today && !p.committed;
     });
   };
 
@@ -236,57 +263,97 @@ function PomodoroTimer() {
             <button onClick={pauseTimer}>Pause</button>
             <button onClick={resetTimer}>Reset</button>
           </div>
-          <div className="bottom-buttons">
-            <button 
-              className="history-button" 
-              onClick={openHistory}
-              title="History"
-            >
-              📅
-            </button>
-            <button 
-              className="settings-button" 
-              onClick={openSettings}
-              title="Settings"
-            >
-              ⚙️
-            </button>
+          <div className="buttons-row">
+            <button onClick={openHistory}>History</button>
+            <button onClick={openSettings}>Settings</button>
           </div>
         </div>
       </div>
 
       <div className="completed-pomodoros">
-        {getTodayPomodoros().map(pomodoro => (
-          <div 
-            key={pomodoro.id} 
-            className={`pomodoro-item ${pomodoro.committed ? 'committed' : ''} ${isDailyGoalAchieved() ? 'goal-achieved' : ''}`}
-          >
-            <div 
-              className="pomodoro-icon"
-              onClick={() => !pomodoro.committed && handlePomodoroClick(pomodoro.id)}
-            >
-              {pomodoroIcon}
+        {/* Calculate all pomodoros to display */}
+        {(() => {
+          // Get all committed and uncommitted pomodoros for today
+          const committedPomodoros = getTodayPomodoros();
+          const uncommittedPomodoros = getUncommittedTodayPomodoros();
+          
+          // Calculate how many empty pomodoros we need to show
+          const emptyPomodorosCount = Math.max(0, dailyGoal - committedPomodoros.length - uncommittedPomodoros.length);
+          
+          // Create an array of all pomodoro items to display
+          const allPomodoros = [
+            // First, add all committed pomodoros
+            ...committedPomodoros.map(pomodoro => ({
+              id: pomodoro.id,
+              type: 'committed',
+              data: pomodoro
+            })),
+            
+            // Then, add all uncommitted pomodoros
+            ...uncommittedPomodoros.map(pomodoro => ({
+              id: pomodoro.id,
+              type: 'uncommitted',
+              data: pomodoro
+            })),
+            
+            // Finally, add empty pomodoros up to the daily goal
+            ...Array.from({ length: emptyPomodorosCount }).map((_, i) => ({
+              id: `empty-${i}`,
+              type: 'empty'
+            }))
+          ];
+          
+          // Split the pomodoros into rows of 10
+          const rows = [];
+          for (let i = 0; i < allPomodoros.length; i += 10) {
+            rows.push(allPomodoros.slice(i, i + 10));
+          }
+          
+          // Render each row
+          return rows.map((row, rowIndex) => (
+            <div key={`row-${rowIndex}`} className="pomodoro-row">
+              {row.map(item => {
+                if (item.type === 'committed') {
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`pomodoro-item committed ${isDailyGoalAchieved() ? 'goal-achieved' : ''}`}
+                    >
+                      <div className="pomodoro-icon">
+                        {pomodoroIcon}
+                      </div>
+                    </div>
+                  );
+                } else if (item.type === 'uncommitted') {
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`pomodoro-item ${isDailyGoalAchieved() ? 'goal-achieved' : ''}`}
+                    >
+                      <div 
+                        className="pomodoro-icon"
+                        onClick={() => handlePomodoroClick(item.id)}
+                      >
+                        {pomodoroIcon}
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`pomodoro-item empty ${isDailyGoalAchieved() ? 'goal-achieved' : ''}`}
+                    >
+                      <div className="pomodoro-icon">
+                        {pomodoroIcon}
+                      </div>
+                    </div>
+                  );
+                }
+              })}
             </div>
-            <button 
-              className="delete-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePomodoroDelete(pomodoro.id);
-              }}
-              title="Delete"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-        
-        {Array.from({ length: Math.max(0, dailyGoal - getTodayPomodoros().length) }).map((_, i) => (
-          <div key={`empty-${i}`} className="pomodoro-item empty">
-            <div className="pomodoro-icon">
-              {pomodoroIcon}
-            </div>
-          </div>
-        ))}
+          ));
+        })()}
       </div>
 
       {selectedPomodoroId && (

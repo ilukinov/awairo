@@ -13,6 +13,10 @@ interface CompletedPomodoro {
 export function History() {
   const [pomodoros, setPomodoros] = useState<CompletedPomodoro[]>([]);
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [dailyGoal, setDailyGoal] = useState(() => {
+    const saved = localStorage.getItem('dailyGoal');
+    return saved ? parseInt(saved) : 8; // Default to 8 pomodoros
+  });
 
   useEffect(() => {
     const loadPomodoros = () => {
@@ -27,6 +31,8 @@ export function History() {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'completedPomodoros') {
         loadPomodoros();
+      } else if (e.key === 'dailyGoal' && e.newValue) {
+        setDailyGoal(parseInt(e.newValue));
       }
     };
 
@@ -145,6 +151,9 @@ export function History() {
                     </div>
                     <div className="summary-committed">
                       Committed: {committedCount}/{dayPomodoros.length}
+                    </div>
+                    <div className="daily-goal-status">
+                      Goal: {committedCount >= dailyGoal ? '✅' : `${committedCount}/${dailyGoal}`}
                     </div>
                   </>
                 );

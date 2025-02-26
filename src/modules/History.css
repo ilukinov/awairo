@@ -122,9 +122,17 @@
   color: #81C784;
 }
 
-.summary-committed {
+.summary-committed,
+.summary-total,
+.daily-goal-status {
+  padding: 2px 5px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
+}
+
+.daily-goal-status {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
 }
 
 .delete-button {
