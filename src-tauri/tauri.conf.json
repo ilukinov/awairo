@@ -96,13 +96,14 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 400,
+        "minWidth": 150,
+        "minHeight": 100,
         "resizable": true,
         "title": "An apple a day",
-        "width": 300,
         "decorations": true,
         "transparent": false,
-        "theme": "Dark"
+        "theme": "Dark",
+        "label": "main"
       }
     ]
   }

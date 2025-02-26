@@ -35,6 +35,7 @@ function PomodoroTimer() {
     const saved = localStorage.getItem('dailyGoal');
     return saved ? parseInt(saved) : 8; // Default to 8 pomodoros
   });
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
     if (isRunning && secondsLeft > 0) {
@@ -165,6 +166,8 @@ function PomodoroTimer() {
   };
 
   const openSettings = async () => {
+    setShowControls(false);
+    
     const settingsWindow = new WebviewWindow('settings', {
       url: 'src/settings.html',
       title: 'Settings',
@@ -187,6 +190,8 @@ function PomodoroTimer() {
   };
 
   const openHistory = async () => {
+    setShowControls(false);
+    
     const historyWindow = new WebviewWindow('history', {
       url: 'src/history.html',
       title: 'History',
@@ -253,11 +258,15 @@ function PomodoroTimer() {
 
   return (
     <div className="pomodoro-container">
-      <div className="timer">
+      <div 
+        className="timer" 
+        onMouseEnter={() => setShowControls(true)}
+        onMouseLeave={() => setShowControls(false)}
+      >
         <div className="display">
           {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
         </div>
-        <div className="controls">
+        <div className={`controls ${showControls ? 'visible' : ''}`}>
           <div className="buttons-row">
             <button onClick={startTimer}>Start</button>
             <button onClick={pauseTimer}>Pause</button>

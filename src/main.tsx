@@ -7,6 +7,7 @@ import './index.css'
 import { WebviewWindow, appWindow } from '@tauri-apps/api/window'
 import { isRegistered, register } from '@tauri-apps/api/globalShortcut';
 
+// Set window properties
 appWindow.setAlwaysOnTop(true);
 appWindow.setDecorations(true);
 

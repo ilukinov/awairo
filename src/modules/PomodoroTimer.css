@@ -39,24 +39,28 @@ body {
   background-color: #1a1a1a;
 }
 
-/* Restore hover functionality for timer controls */
-.timer:hover .controls {
+/* Remove the hover functionality since we're using state now */
+/* .timer:hover .controls {
   display: flex;
-}
+} */
 
 .timer .controls {
   display: none;
 }
 
+.timer .controls.visible {
+  display: flex;
+}
+
 .display {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  font-size: 35vw; /* Further reduced size to leave space for pomodoros */
+  font-size: 30vw; /* Further reduced size to leave space for pomodoros */
   font-weight: bold;
   text-align: center;
   color: rgba(255, 255, 255, 0.87);
   width: 100%;
-  padding: 5px 0;
+  padding: 0 0;
   user-select: none;
 }
 
@@ -70,6 +74,10 @@ body {
   flex-direction: column;
   background-color: rgba(26, 26, 26, 0.95);
   z-index: 5; /* Higher z-index to appear above the pomodoros */
+}
+
+.controls.visible {
+  display: flex;
 }
 
 .buttons-row {
@@ -103,7 +111,6 @@ button {
   font-weight: 500;
   cursor: pointer; 
   flex: 1;
-  transition: border-color 0.25s;
   width: 33%;
   height: 21.5vw;
   margin: 0.5vw;
@@ -128,7 +135,7 @@ button:hover {
 }
 
 .apple {
-  width: 10%; /* adjust as needed */
+  width: 7%; /* adjust as needed */
   text-align: center;
   font-size: 10vw;
 }
@@ -155,7 +162,7 @@ button:hover {
 .completed-pomodoros {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  /* gap: 10px; */
   margin: 1vw 0;
   flex: 1 0 auto; /* Allow it to grow but not shrink */
 }
@@ -164,8 +171,7 @@ button:hover {
   display: flex;
   justify-content: center;
   flex-wrap: nowrap;
-  gap: 4px; /* Reduced from 8px to save horizontal space */
-  margin: 4px 0; /* Add vertical margin between rows */
+  margin: 1px 0; /* Add vertical margin between rows */
 }
 
 .pomodoro-item {
@@ -179,7 +185,7 @@ button:hover {
 .pomodoro-icon {
   font-size: 6.5vw; /* Reduced from 7vw to make icons smaller */
   opacity: 0.7;
-  padding: 0.01vw; /* Reduced padding from 0.5vw */
+  /* padding: 0.01vw; Reduced padding from 0.5vw */
   position: relative;
 }
 
