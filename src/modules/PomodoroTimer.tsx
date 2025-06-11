@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import "./PomodoroTimer.css";
 import { PomodoroDialog } from "./PomodoroDialog";
-import { WebviewWindow } from '@tauri-apps/api/window';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 const POMODORO_DURATION = 0.1; // Pomodoro duration in minutes
 const BREAK_DURATION = 5; // Break duration in minutes

@@ -2,44 +2,37 @@
   all(not(debug_assertions), target_os = "windows"),
   windows_subsystem = "windows"
 )]
-use serialport::*;
+
 use tauri::{Manager, WindowEvent};
 use window_state::{WindowState, WindowStateManager};
 
 mod window_state;
 
 fn main() {
-  match available_ports() {
-    Ok(ports) => {
-        for port in ports {
-            println!("Found port: {}", port.port_name);
-        }
-    }
-    Err(e) => {
-        println!("Error listing ports: {}", e);
-    }
-  }
 
   tauri::Builder::default()
     .plugin(tauri_plugin_store::Builder::default().build())
+    .plugin(tauri_plugin_fs::init())
+    .plugin(tauri_plugin_http::init())
+    .plugin(tauri_plugin_global_shortcut::Builder::new().build())
     .setup(|app| {
-      let window = app.get_window("main").unwrap();
+      let window = app.get_webview_window("main").unwrap();
       
       // Initialize window state manager
-      let window_state_manager = WindowStateManager::new(app.path_resolver().app_data_dir().unwrap());
+      let window_state_manager = WindowStateManager::new(app.path().app_data_dir().unwrap());
       
       // Load saved window state
       if let Some(saved_state) = window_state_manager.load() {
         // Set window size from saved state
-        window.set_size(tauri::Size::Physical(
+        let _ = window.set_size(tauri::Size::Physical(
           tauri::PhysicalSize {
             width: saved_state.width,
             height: saved_state.height,
           }
-        )).unwrap();
+        ));
         
         // Center the window after setting size
-        window.center().unwrap();
+        let _ = window.center();
       }
       
       // Save window state on close and when resized/moved
@@ -67,7 +60,7 @@ fn main() {
 }
 
 // Helper function to save window state
-fn save_window_state(window: &tauri::Window, state_manager: &WindowStateManager) {
+fn save_window_state(window: &tauri::WebviewWindow, state_manager: &WindowStateManager) {
   if let Ok(size) = window.inner_size() {
     let state = WindowState {
       width: size.width, 

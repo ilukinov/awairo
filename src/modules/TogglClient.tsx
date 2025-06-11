@@ -1,5 +1,5 @@
 //TogglClient.tsx
-import {FetchOptions, fetch, Body, HttpVerb} from '@tauri-apps/api/http';
+import { fetch } from '@tauri-apps/plugin-http';
 import Pomodoro from './types/Pomodoro';
 
 class TogglClient {
@@ -31,16 +31,16 @@ class TogglClient {
       console.log(timeEntry)
     const res = await fetch(`${this.baseUrl}/${this.workSpace}/time_entries`, {
       method: 'POST',
-      timeout: 5000,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${btoa(this.apiToken + ':api_token')}`
       },
-      body: Body.json(timeEntry)
+      body: JSON.stringify(timeEntry)
     });
-    console.log(res.data);
+    const data = await res.json();
+    console.log(data);
     console.log(res.status);
-    console.log(res.data);
+    console.log(data);
   }
 
   public async sendToTogglBulk(pomodoros: Pomodoro[]) {
@@ -67,16 +67,16 @@ class TogglClient {
   
     const res = await fetch(`${this.baseUrl}/time_entries/bulk`, {
         method: 'POST',
-        timeout: 5000,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Basic ${btoa(this.apiToken + ':api_token')}`
         },
-        body: Body.json({ time_entries: timeEntries })
+        body: JSON.stringify({ time_entries: timeEntries })
       });
 
+      const data = await res.json();
       console.log(res.status);
-      console.log(res.data);
+      console.log(data);
     } catch (error) {
       console.error(error);
     }
