@@ -168,49 +168,51 @@ function PomodoroTimer() {
   const openSettings = async () => {
     setShowControls(false);
     
-    const settingsWindow = new WebviewWindow('settings', {
-      url: 'src/settings.html',
-      title: 'Settings',
-      width: 400,
-      height: 600,
-      decorations: true,
-      resizable: true,
-      center: true,
-      alwaysOnTop: true,
-      focus: true,
-    });
+    try {
+      console.log('Creating settings window...');
+      const settingsWindow = new WebviewWindow('settings', {
+        url: '/src/settings.html',
+        title: 'Settings',
+        width: 400,
+        height: 600,
+        decorations: true,
+        resizable: true,
+        center: true,
+        alwaysOnTop: true,
+        focus: true,
+      });
 
-    settingsWindow.once('tauri://created', async () => {
+      console.log('Settings window created, setting always on top...');
       await settingsWindow.setAlwaysOnTop(true);
-    });
-
-    settingsWindow.once('tauri://error', (e) => {
-      console.error('Settings window creation failed:', e);
-    });
+      console.log('Settings window configured successfully');
+    } catch (error) {
+      console.error('Settings window creation failed:', error);
+    }
   };
 
   const openHistory = async () => {
     setShowControls(false);
     
-    const historyWindow = new WebviewWindow('history', {
-      url: 'src/history.html',
-      title: 'History',
-      width: 1200,
-      height: 800,
-      decorations: true,
-      resizable: true,
-      center: true,
-      alwaysOnTop: true,
-      focus: true,
-    });
+    try {
+      console.log('Creating history window...');
+      const historyWindow = new WebviewWindow('history', {
+        url: '/src/history.html',
+        title: 'History',
+        width: 1200,
+        height: 800,
+        decorations: true,
+        resizable: true,
+        center: true,
+        alwaysOnTop: true,
+        focus: true,
+      });
 
-    historyWindow.once('tauri://created', async () => {
+      console.log('History window created, setting always on top...');
       await historyWindow.setAlwaysOnTop(true);
-    });
-
-    historyWindow.once('tauri://error', (e) => {
-      console.error('History window creation failed:', e);
-    });
+      console.log('History window configured successfully');
+    } catch (error) {
+      console.error('History window creation failed:', error);
+    }
   };
 
   const handleTimerComplete = () => {
