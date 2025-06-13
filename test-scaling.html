@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Scaling Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .test-container {
+            border: 2px solid #333;
+            margin: 20px 0;
+            padding: 10px;
+        }
+        
+        .window-size-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .widget-container {
+            width: 300px;
+            height: 400px;
+            border: 2px solid #007acc;
+            position: relative;
+            overflow: hidden;
+            resize: both;
+            background: white;
+        }
+        
+        .test-content {
+            font-size: 30vw;
+            color: white;
+            background: #1a1a1a;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .test-button {
+            font-size: 7vw;
+            padding: 5px 10px;
+            margin: 2px;
+        }
+        
+        .test-icon {
+            font-size: 6.5vw;
+            display: inline-block;
+            margin: 2px;
+        }
+        
+        /* Fixed size versions for comparison */
+        .fixed-content {
+            font-size: 60px;
+            color: white;
+            background: #1a1a1a;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .fixed-button {
+            font-size: 14px;
+            padding: 5px 10px;
+            margin: 2px;
+        }
+        
+        .fixed-icon {
+            font-size: 20px;
+            display: inline-block;
+            margin: 2px;
+        }
+        
+        .measurement {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 5px;
+            font-size: 10px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pomodoro Widget Scaling Test</h1>
+    
+    <div class="window-size-controls">
+        <h4>Window Controls</h4>
+        <button onclick="resizeWindow(800, 600)">Small (800x600)</button>
+        <button onclick="resizeWindow(1200, 800)">Medium (1200x800)</button>
+        <button onclick="resizeWindow(1600, 1000)">Large (1600x1000)</button>
+        <div id="window-size"></div>
+    </div>
+    
+    <div class="test-container">
+        <h3>Problem: Current Viewport-Based Scaling (vw/vh units)</h3>
+        <p>This content scales with the WINDOW size, not the widget container size.</p>
+        <div class="widget-container">
+            <div class="test-content">25:00</div>
+            <button class="test-button">Start</button>
+            <button class="test-button">Pause</button>
+            <span class="test-icon">🍎</span>
+            <span class="test-icon">🍎</span>
+            <span class="test-icon">🍎</span>
+            <div class="measurement" id="viewport-measure"></div>
+        </div>
+        <p><strong>Try:</strong> Resize the window (use the buttons above) and watch how the content inside the widget changes size even though the widget container stays the same size.</p>
+    </div>
+    
+    <div class="test-container">
+        <h3>Solution: Container-Based Scaling (fixed px units)</h3>
+        <p>This content stays the same size regardless of window size.</p>
+        <div class="widget-container">
+            <div class="fixed-content">25:00</div>
+            <button class="fixed-button">Start</button>
+            <button class="fixed-button">Pause</button>
+            <span class="fixed-icon">🍎</span>
+            <span class="fixed-icon">🍎</span>
+            <span class="fixed-icon">🍎</span>
+            <div class="measurement" id="fixed-measure"></div>
+        </div>
+        <p><strong>Result:</strong> Content size is independent of window size and only depends on the widget container size.</p>
+    </div>
+    
+    <script>
+        function resizeWindow(width, height) {
+            window.resizeTo(width, height);
+            updateMeasurements();
+        }
+        
+        function updateMeasurements() {
+            const windowSize = document.getElementById('window-size');
+            const viewportMeasure = document.getElementById('viewport-measure');
+            const fixedMeasure = document.getElementById('fixed-measure');
+            
+            windowSize.innerHTML = `Window: ${window.innerWidth}x${window.innerHeight}px`;
+            
+            // Measure actual font sizes
+            const vpText = document.querySelector('.test-content');
+            const fixedText = document.querySelector('.fixed-content');
+            
+            if (vpText && fixedText) {
+                const vpSize = window.getComputedStyle(vpText).fontSize;
+                const fixedSize = window.getComputedStyle(fixedText).fontSize;
+                
+                viewportMeasure.innerHTML = `Font: ${vpSize}`;
+                fixedMeasure.innerHTML = `Font: ${fixedSize}`;
+            }
+        }
+        
+        // Update measurements on load and resize
+        window.addEventListener('load', updateMeasurements);
+        window.addEventListener('resize', updateMeasurements);
+        
+        // Initial measurement
+        updateMeasurements();
+        
+        // Add test button for verification
+        const testButton = document.createElement('button');
+        testButton.textContent = 'Run Scaling Test';
+        testButton.onclick = function() {
+            // Measure before
+            const vpBefore = window.getComputedStyle(document.querySelector('.test-content')).fontSize;
+            const fixedBefore = window.getComputedStyle(document.querySelector('.fixed-content')).fontSize;
+            
+            console.log('Before window resize:');
+            console.log('Viewport-based font-size:', vpBefore);
+            console.log('Fixed font-size:', fixedBefore);
+            
+            // Simulate resize by changing viewport meta
+            const viewport = document.querySelector('meta[name="viewport"]');
+            const originalContent = viewport.content;
+            viewport.content = "width=device-width, initial-scale=0.5";
+            
+            setTimeout(() => {
+                const vpAfter = window.getComputedStyle(document.querySelector('.test-content')).fontSize;
+                const fixedAfter = window.getComputedStyle(document.querySelector('.fixed-content')).fontSize;
+                
+                console.log('After viewport change:');
+                console.log('Viewport-based font-size:', vpAfter);
+                console.log('Fixed font-size:', fixedAfter);
+                
+                if (vpBefore !== vpAfter) {
+                    console.log('❌ Viewport-based scaling changed (this is the problem)');
+                } else {
+                    console.log('✅ Viewport-based scaling did NOT change');
+                }
+                
+                if (fixedBefore === fixedAfter) {
+                    console.log('✅ Fixed scaling stayed the same (this is correct)');
+                } else {
+                    console.log('❌ Fixed scaling changed (unexpected)');
+                }
+                
+                // Restore
+                viewport.content = originalContent;
+                updateMeasurements();
+            }, 100);
+        };
+        
+        document.querySelector('.window-size-controls').appendChild(testButton);
+    </script>
+</body>
+</html>

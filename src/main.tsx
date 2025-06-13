@@ -2,7 +2,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
-import PomodoroTimer from './modules/PomodoroTimer'
+import App from './App'
 import './index.css'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 
@@ -13,6 +13,6 @@ appWindow.setDecorations(true);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <PomodoroTimer />
+    <App />
   </React.StrictMode>,
 )

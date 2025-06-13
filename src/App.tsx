@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import PomodoroTimer from './modules/PomodoroTimer';
+import { Dashboard, initializeWidgets } from './lib/widgets';
 import { Settings } from './modules/Settings';
 import { History } from './modules/History';
 
@@ -7,6 +7,9 @@ function App() {
   const [currentPage, setCurrentPage] = useState('main');
 
   useEffect(() => {
+    // Initialize the widget system
+    initializeWidgets();
+    
     const searchParams = new URLSearchParams(window.location.search);
     const page = searchParams.get('page');
     if (page) {
@@ -20,7 +23,7 @@ function App() {
     case 'history':
       return <History />;
     default:
-      return <PomodoroTimer />;
+      return <Dashboard />;
   }
 }
 

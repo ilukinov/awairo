@@ -36,44 +36,72 @@ This application has been successfully upgraded to Tauri v2, which includes sign
 
 ## Application Architecture
 
-### Multi-Window Tauri Desktop Application
-This is a Pomodoro timer desktop application built with Tauri (Rust backend) and React (TypeScript frontend). The app uses a multi-window architecture where each "page" opens in a separate window.
+### Widget Dashboard Platform
+This application has been transformed from a simple Pomodoro timer into a comprehensive widget dashboard platform built with Tauri (Rust backend) and React (TypeScript frontend). The app now uses a widget-based architecture where multiple productivity tools can be added to a canvas.
 
-### Window Management System
-- **Main Window**: PomodoroTimer component with timer display and completed pomodoro tracking
-- **Settings Window**: Separate window for configuring timer length, daily goals, and pomodoro icon
-- **History Window**: Separate window showing historical pomodoro data and statistics
+### Widget System Architecture
+- **Widget Core System**: Registry, lifecycle management, and communication
+- **Dashboard Layout Engine**: Positioning, sizing, and layout management  
+- **Widget Types**: Display, interactive, system integration, and external service widgets
+- **Permission System**: Capability-based security for widget operations
+- **Multi-Window Support**: Settings and history still open in separate windows
+
+### Core Widget System Components
+- **Widget Registry** (`src/lib/core/registry/WidgetRegistry.ts`): Central registration for all widget types
+- **Lifecycle Manager** (`src/lib/core/lifecycle/WidgetLifecycleManager.ts`): Manages widget instances and lifecycle
+- **Dashboard Layout** (`src/lib/core/state/DashboardLayout.ts`): Handles positioning, sizing, and layout persistence
+- **Dashboard Component** (`src/lib/components/dashboard/Dashboard.tsx`): Main canvas interface with drag-and-drop
+
+### Available Widgets
+- **Pomodoro Timer Widget** (`src/lib/widgets/interactive/PomodoroWidget.ts`): Converted from original timer with full functionality
+- **Future Widgets**: Clock, weather, system stats, task lists, notes, system commands, RSS feeds, etc.
+
+### Window Management System  
+- **Main Window**: Dashboard canvas with widget management interface
+- **Settings Window**: Separate window for global application settings
+- **History Window**: Separate window showing historical data and statistics
 - **Window State Persistence**: Rust backend automatically saves and restores window size/position
 
 ### Frontend Structure
 - **Multi-Entry Vite Build**: Uses separate HTML entry points (index.html, src/settings.html, src/history.html)
+- **Widget Architecture**: Modular system with base classes and interfaces
 - **React Components**: 
-  - `App.tsx` - Main router component that switches between pages based on URL params
-  - `PomodoroTimer.tsx` - Core timer functionality with local storage persistence
-  - `Settings.tsx` - Timer configuration interface  
-  - `History.tsx` - Historical data display with filtering
-  - `PomodoroDialog.tsx` - Modal for editing completed pomodoro details
+  - `App.tsx` - Main router that loads Dashboard or legacy windows
+  - `Dashboard.tsx` - Widget canvas with add/remove/drag functionality
+  - `Settings.tsx` - Global configuration interface  
+  - `History.tsx` - Historical data display
 
 ### Data Storage
-- **LocalStorage**: Primary storage for pomodoro data, settings, and timer configuration
+- **Widget State Management**: Each widget manages its own state and persistence
+- **LocalStorage**: Primary storage for widget data, settings, and configuration
+- **Layout Persistence**: Dashboard layout saved and restored automatically
 - **Cross-Window Communication**: Uses storage events to sync state between windows
 - **Tauri Store Plugin**: Available for more structured data persistence if needed
 
 ### Backend Integration
 - **Tauri Commands**: Rust backend handles window management and system integration
-- **Serial Port Access**: Application has serialport dependency (currently unused)
-- **HTTP Permissions**: Configured for Toggl API integration (api.track.toggl.com)
+- **HTTP Permissions**: Configured for widget network access (Toggl API, weather APIs, etc.)
 - **Global Shortcuts**: Available for system-wide hotkey functionality
+- **File System Access**: Widgets can request file operations through capability system
+
+### Widget Development
+- **Base Widget Class**: Abstract class with lifecycle methods (initialize, render, update, destroy)
+- **Widget Definition**: Metadata including permissions, settings, size constraints
+- **Widget Registration**: Automatic registration through widget system initialization
+- **Permission System**: Fine-grained permissions for filesystem, network, system commands
+- **Configuration**: JSON-based settings with validation and UI generation
 
 ### Key Features
-- Configurable timer lengths (stored as hours/minutes/seconds)
-- Daily goal tracking with visual progress indicators
-- Pomodoro completion workflow with commit/uncommit states
-- Visual feedback when daily goals are achieved
-- Historical data tracking and statistics
+- **Drag-and-Drop Interface**: Widgets can be moved around the canvas
+- **Resizable Widgets**: Widgets can be resized within their constraints
+- **Widget Gallery**: Add new widgets from a categorized gallery
+- **Layout Management**: Save and restore widget layouts
+- **Grid Snapping**: Automatic alignment to grid for clean layouts
+- **Z-Index Management**: Bring widgets to front/back as needed
 
 ### Development Notes
-- Timer uses 0.1 minute duration in development (line 7 in PomodoroTimer.tsx)
-- Window creation uses WebviewWindow API for programmatic window management
-- All windows can be set to always-on-top for productivity focus
-- React strict mode and TypeScript with strict settings enabled
+- Widget system follows the roadmap architecture from `/roadmap` folder
+- All widgets inherit from `BaseWidget` class with standardized lifecycle
+- Dashboard uses CSS Grid for precise positioning and layout
+- Widget permissions are enforced through Tauri's capability system
+- TypeScript strict mode enabled with comprehensive type definitions
