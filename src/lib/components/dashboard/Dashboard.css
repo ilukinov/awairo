@@ -144,6 +144,9 @@
 .widget-container {
   user-select: none;
   transition: box-shadow 0.2s, transform 0.1s;
+  /* Ensure widgets don't overflow horizontally */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .widget-container:hover {
@@ -161,6 +164,9 @@
 
 .widget-content {
   position: relative;
+  /* Ensure content doesn't overflow */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Responsive Design */

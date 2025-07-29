@@ -9,7 +9,8 @@ export default defineConfig({
       input: {
         main: 'index.html',
         settings: 'src/settings.html',
-        history: 'src/history.html'
+        history: 'src/history.html',
+        canvasSettings: 'src/canvas-settings.html'
       }
     }
   }

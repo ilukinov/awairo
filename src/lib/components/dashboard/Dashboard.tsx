@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { widgetRegistry } from '../../core/registry/WidgetRegistry';
 import { widgetLifecycleManager } from '../../core/lifecycle/WidgetLifecycleManager';
 import { dashboardLayout } from '../../core/state/DashboardLayout';
+import { canvasSettings, CanvasSettings } from '../../core/state/CanvasSettings';
 import { WidgetDefinition, WidgetInstance, WidgetLayoutItem } from '../../widgets/base/Widget';
 import './Dashboard.css';
 
@@ -13,6 +15,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [widgets, setWidgets] = useState<WidgetInstance[]>([]);
   const [availableWidgets, setAvailableWidgets] = useState<WidgetDefinition[]>([]);
+  const [currentCanvasSettings, setCurrentCanvasSettings] = useState<CanvasSettings>(canvasSettings.getSettings());
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; visible: boolean }>({
     x: 0,
     y: 0,
@@ -34,11 +37,80 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
     
     // Load existing widgets
     refreshWidgets();
-  }, []);
+
+    // Subscribe to canvas settings changes
+    const unsubscribe = canvasSettings.subscribe((settings) => {
+      setCurrentCanvasSettings(settings);
+    });
+
+    // Handle window resize to update widget layout data
+    const handleWindowResize = () => {
+      if (!dashboardRef.current) return;
+      
+      const dashboardRect = dashboardRef.current.getBoundingClientRect();
+      const canvasWidth = dashboardRect.width;
+      
+      // Use requestAnimationFrame for smooth performance
+      requestAnimationFrame(() => {
+        // Update widget layout data to reflect new dimensions
+        widgets.forEach(widget => {
+          const container = document.getElementById(`widget-${widget.instanceId}`);
+          if (container) {
+            const layoutItem = dashboardLayout.getWidgetLayout(widget.instanceId);
+            if (layoutItem) {
+              // CSS handles both width and height automatically
+              // Just update our internal state to match current dimensions
+              const newWidth = container.offsetWidth;
+              const newHeight = container.offsetHeight;
+              
+              // Update layout with current dimensions
+              const newSize = { width: newWidth, height: newHeight };
+              dashboardLayout.resizeWidget(widget.instanceId, newSize);
+              widgetLifecycleManager.updateWidgetSize(widget.instanceId, newSize);
+              
+              // Notify widget of resize
+              const widgetInstance = widgetLifecycleManager.getWidget(widget.instanceId);
+              if (widgetInstance && typeof widgetInstance.onResize === 'function') {
+                widgetInstance.onResize(newWidth, newHeight);
+              }
+            }
+          }
+        });
+      });
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, [widgets]);
 
   const refreshWidgets = () => {
     const instances = widgetLifecycleManager.getActiveInstances();
     setWidgets(instances);
+  };
+
+  const openCanvasSettings = async () => {
+    try {
+      console.log('Creating canvas settings window...');
+      const canvasSettingsWindow = new WebviewWindow('canvas-settings', {
+        url: '/src/canvas-settings.html',
+        title: 'Canvas Settings',
+        width: 450,
+        height: 550,
+        decorations: true,
+        resizable: false,
+        center: true,
+        alwaysOnTop: true,
+        focus: true,
+      });
+
+      console.log('Canvas settings window created successfully');
+    } catch (error) {
+      console.error('Canvas settings window creation failed:', error);
+    }
   };
 
   const addWidget = async (widgetId: string) => {
@@ -51,7 +123,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
 
     // Calculate size based on canvas width and preferred aspect ratio
     const canvasWidth = dashboardRect.width;
-    let widgetWidth = canvasWidth * 0.8; // Use 80% of canvas width
+    let widgetWidth = canvasWidth; // Use full canvas width
     let widgetHeight: number;
 
     if (definition.preferredAspectRatio) {
@@ -60,7 +132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
       widgetHeight = widgetWidth / aspectRatio;
       
       // Ensure the widget fits within canvas height
-      const maxHeight = dashboardRect.height * 0.8;
+      const maxHeight = dashboardRect.height;
       if (widgetHeight > maxHeight) {
         // If calculated height is too tall, scale down proportionally
         widgetHeight = maxHeight;
@@ -86,10 +158,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
       height: Math.round(widgetHeight)
     };
 
-    // Center the widget on canvas
+    // Position widget at the top-left of canvas since it spans full width
     const position = {
-      x: Math.max(0, (dashboardRect.width - size.width) / 2),
-      y: Math.max(0, (dashboardRect.height - size.height) / 2)
+      x: 0,
+      y: 0
     };
 
     const instanceId = await widgetLifecycleManager.createWidget(
@@ -109,9 +181,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
 
       dashboardLayout.addWidget(layoutItem);
       refreshWidgets();
-      
-      // Render the widget
-      renderWidget(instanceId);
     }
 
     setContextMenu({ x: 0, y: 0, visible: false });
@@ -148,8 +217,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
     container.style.position = 'absolute';
     container.style.left = `${layoutItem.position.x}px`;
     container.style.top = `${layoutItem.position.y}px`;
-    container.style.width = `${layoutItem.size.width}px`;
-    container.style.height = `${layoutItem.size.height}px`;
+    container.style.width = '100%'; // Use 100% width for instant scaling
+    
+    // Use CSS aspect-ratio for instant height scaling
+    if (widget.preferredAspectRatio?.locked) {
+      const aspectRatio = widget.preferredAspectRatio.width / widget.preferredAspectRatio.height;
+      container.style.aspectRatio = `${aspectRatio}`;
+      container.style.height = 'auto'; // Let CSS handle height
+    } else {
+      container.style.height = `${layoutItem.size.height}px`;
+    }
+    
     container.style.zIndex = layoutItem.zIndex.toString();
     // Minimal invisible widget styling
     container.style.border = 'none';
@@ -350,33 +428,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
     const performResize = () => {
       if (!pendingResize || !isResizing) return;
       
-      const deltaX = currentMousePos.x - resizeStartPos.x;
       const deltaY = currentMousePos.y - resizeStartPos.y;
       
-      let newWidth = resizeStartSize.width + deltaX;
-      let newHeight = resizeStartSize.height + deltaY;
-      
-      // Respect min constraints
-      newWidth = Math.max(10, newWidth);
-      newHeight = Math.max(10, newHeight);
-      
-      // Handle aspect ratio if widget has locked ratio
+      // For widgets with aspect ratio, temporarily disable CSS aspect-ratio to allow manual resize
       if (aspectRatio) {
-        const currentRatio = newWidth / newHeight;
-        
-        if (Math.abs(currentRatio - aspectRatio) > 0.01) {
-          // Prioritize the dimension that changed more
-          if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            newHeight = newWidth / aspectRatio;
-          } else {
-            newWidth = newHeight * aspectRatio;
-          }
-        }
+        const newHeight = Math.max(10, resizeStartSize.height + deltaY);
+        // Override CSS aspect-ratio temporarily during manual resize
+        container.style.aspectRatio = 'unset';
+        container.style.height = `${newHeight}px`;
+      } else {
+        // For widgets without aspect ratio, just resize height
+        const newHeight = Math.max(10, resizeStartSize.height + deltaY);
+        container.style.height = `${newHeight}px`;
       }
-      
-      // Apply new size immediately (this is the visual update)
-      container.style.width = `${newWidth}px`;
-      container.style.height = `${newHeight}px`;
       
       pendingResize = false;
     };
@@ -422,6 +486,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
         
+        // Restore CSS aspect-ratio if widget has one
+        if (aspectRatio) {
+          container.style.aspectRatio = `${aspectRatio}`;
+          container.style.height = 'auto'; // Let CSS handle height
+        }
+        
         // Final update to layout managers (heavy operations done once at end)
         const finalWidth = container.offsetWidth;
         const finalHeight = container.offsetHeight;
@@ -463,34 +533,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
     }
 
     // Add resize observer to handle widget resizing
+    let isInitialRender = true;
     const resizeObserver = new ResizeObserver((entries) => {
+      // Skip first resize event which happens during initial render
+      if (isInitialRender) {
+        isInitialRender = false;
+        return;
+      }
+      
       for (const entry of entries) {
-        let newWidth = entry.contentRect.width;
-        let newHeight = entry.contentRect.height;
-        
-        // Handle aspect ratio constraints
-        if (widget.preferredAspectRatio?.locked) {
-          const aspectRatio = widget.preferredAspectRatio.width / widget.preferredAspectRatio.height;
-          const currentAspectRatio = newWidth / newHeight;
-          
-          // Adjust dimensions to maintain aspect ratio
-          // We'll prioritize the dimension that changed more
-          if (Math.abs(currentAspectRatio - aspectRatio) > 0.01) { // Allow small tolerance
-            const targetHeight = newWidth / aspectRatio;
-            const targetWidth = newHeight * aspectRatio;
-            
-            // Choose the adjustment that results in smaller widget (stays within bounds)
-            if (targetHeight <= newHeight) {
-              newHeight = targetHeight;
-            } else {
-              newWidth = targetWidth;
-            }
-            
-            // Apply the corrected dimensions
-            container.style.width = `${newWidth}px`;
-            container.style.height = `${newHeight}px`;
-          }
-        }
+        // CSS handles both width and height automatically
+        // Just update our internal state to match current dimensions
+        const newWidth = entry.contentRect.width;
+        const newHeight = entry.contentRect.height;
         
         // Update layout with final size
         const newSize = { width: newWidth, height: newHeight };
@@ -543,17 +598,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Render all existing widgets when component updates
+  // Only render widgets on initial load
   useEffect(() => {
     if (!dashboardRef.current) return;
 
-    // Clear existing widget containers
-    const existingWidgets = dashboardRef.current.querySelectorAll('.widget-container');
-    existingWidgets.forEach(el => el.remove());
-
-    // Render all active widgets
+    // Only render widgets that don't already exist in the DOM
     widgets.forEach(widget => {
-      renderWidget(widget.instanceId);
+      const existingWidget = document.getElementById(`widget-${widget.instanceId}`);
+      if (!existingWidget) {
+        renderWidget(widget.instanceId);
+      }
     });
   }, [widgets]);
 
@@ -568,13 +622,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
           position: 'relative',
           width: '100%',
           height: '100vh',
-          backgroundColor: '#fafafa', // Cleaner, more minimal background
-          backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.02) 1px, transparent 1px)', // Much more subtle grid
-          backgroundSize: '24px 24px', // Slightly larger grid for cleaner look
+          backgroundColor: currentCanvasSettings.backgroundColor,
+          backgroundImage: currentCanvasSettings.gridEnabled 
+            ? `radial-gradient(circle, rgba(0,0,0,${currentCanvasSettings.gridOpacity}) 1px, transparent 1px)` 
+            : 'none',
+          backgroundSize: `${currentCanvasSettings.gridSize}px ${currentCanvasSettings.gridSize}px`,
           overflow: 'hidden',
           cursor: 'default'
         }}
       />
+
+      {/* Canvas Settings Toggle Button */}
+      <button
+        onClick={openCanvasSettings}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 10001,
+          background: 'rgba(255, 255, 255, 0.9)',
+          border: '1px solid rgba(0, 0, 0, 0.1)',
+          borderRadius: '8px',
+          padding: '10px',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          fontSize: '18px',
+          width: '40px',
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backdropFilter: 'blur(10px)'
+        }}
+        title="Canvas Settings"
+      >
+        ⚙️
+      </button>
+
 
       {contextMenu.visible && (
         <div 

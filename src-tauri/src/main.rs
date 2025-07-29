@@ -3,10 +3,16 @@
   windows_subsystem = "windows"
 )]
 
-use tauri::{Manager, WindowEvent};
+use tauri::{Manager, WindowEvent, command};
 use window_state::{WindowState, WindowStateManager};
 
 mod window_state;
+
+#[command]
+fn set_always_on_top(window: tauri::WebviewWindow, always_on_top: bool) -> Result<(), String> {
+  window.set_always_on_top(always_on_top)
+    .map_err(|e| e.to_string())
+}
 
 fn main() {
 
@@ -15,6 +21,7 @@ fn main() {
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+    .invoke_handler(tauri::generate_handler![set_always_on_top])
     .setup(|app| {
       let window = app.get_webview_window("main").unwrap();
       
